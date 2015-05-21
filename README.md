@@ -12,7 +12,9 @@ Download:
 --------------
 1. Dataset
 2. ROUGE
-3. [pandas](http://pandas.pydata.org/) - ashkonf_pagerank
+3. pyquery (xml parsing)
+4. nltk (word tokenization)
+5. [pandas](http://pandas.pydata.org/) - ashkonf_pagerank
 --------------
 
 Files:
