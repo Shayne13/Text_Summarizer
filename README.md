@@ -27,6 +27,18 @@ Files:
 2. distributedwordreps.py (from class)
 --------------
 
+File Format:
+-------------
+    #!/usr/bin/env python
+    # ------------------------------------
+    # Args:
+        [1] file.txt
+        [2] flag: [1, 3]
+    # EG: python example.py test.txt 1
+    # ------------------------------------
+    # Description ...
+    # ------------------------------------
+-------------
 
 
 

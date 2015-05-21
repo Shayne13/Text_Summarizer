@@ -1,24 +1,42 @@
 #!/usr/bin/env python
 
-# All required imports:
+import sys, os
+from pyquery import PyQuery as pq
+# import csv
+# import copy
+
 # ------------------------------------
-import os
-import sys
-import csv
-import copy
-import random
-import pickle
-import itertools
-from operator import itemgetter
-from collections import defaultdict
+# Args: None
+# EG:
 # ------------------------------------
-import numpy as np
-import scipy
-import scipy.spatial.distance
-import sklearn.metrics
-from numpy.linalg import svd
-from collections import defaultdict
+# Description ...
 # ------------------------------------
+
+# Arg Check:
+# ------------------------------------
+if len(sys.argv) != 2:
+  sys.exit('''Please pass in the following arguments:
+1. The folder of xml files to be parsed.''')
+
+folder = sys.argv[1]
+paths = [ "./{0}/{1}".format(folder, f) for f in os.listdir(folder) ]
+
+for p in paths:
+  f = pq(filename=p)
+  s = f('summary')
+  b = f('body')
+
+
+# s = f('summary')
+# s.text()
+# len(s)
+# dir(s)
+# type(s)
+
+
+
+
+
 
 
 
