@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-# Trivial change
-
 import sys, os, nltk, codecs
 from pyquery import PyQuery as pq
 from nltk import word_tokenize
