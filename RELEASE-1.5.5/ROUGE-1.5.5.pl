@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl5.16 -w
 # Version:     ROUGE v1.5.5
 # Date:        05/26/2005,05/19/2005,04/26/2005,04/03/2005,10/28/2004,10/25/2004,10/21/2004
 # Author:      Chin-Yew Lin
@@ -169,7 +169,7 @@
 # ATTACHED TO EVERY PART.
 #
 # Contributor to its design is Chin-Yew Lin.
-
+use lib "/opt/local/lib/perl5/site_perl/5.16.3";
 use XML::DOM;
 use DB_File;
 use Getopt::Std;
