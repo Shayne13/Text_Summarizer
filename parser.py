@@ -21,6 +21,7 @@ from collections import Counter
 # Contains all parsing functions and surface feature extractors.
 # ------------------------------------
 def parse_folder(folder, output, flag):
+
   allSentences = []
   allSurfaceFeatures = []
 
@@ -36,22 +37,18 @@ def parse_folder(folder, output, flag):
       title, goldSummarySentences, summaryFeatures = parse_summary(d, sentenceDetector)
       goldFilename = '{0}/gold_{1}.txt'.format(output, key)
       with codecs.open(goldFilename, 'w', 'utf-8-sig') as gf: gf.write(u'\n'.join(goldSummarySentences))
-
-      # with open(goldFilename, 'w') as gf: gf.write ('\n'.join(goldSummarySentences))
-      # print "[{0}] Summary for {1} ({2})  --->  {3}".format(i, f, title, goldFilename)
       allSentences.append(goldSummarySentences)
       allSurfaceFeatures.append(summaryFeatures)
+      # print "[{0}] Summary for {1} ({2})  --->  {3}".format(i, f, title, goldFilename)
 
     elif flag == 1: # Extract surface features from body and write to output folder:
 
-      # print "[{0}] Parsing: {1}".format(i, f)
       sentences, fileSurfaceFeatures = parse_body(d, sentenceDetector)
       trainExFilename = '{0}/train_{1}.txt'.format(output, key)
       with codecs.open(trainExFilename, 'w', 'utf-8-sig') as ff: ff.write(u'\n'.join(sentences))
-
-      # with open(trainExFilename, 'w') as ff: ff.write ('\n'.join(sentences))
       allSentences.append(sentences)
       allSurfaceFeatures.append(fileSurfaceFeatures)
+      # print "[{0}] Parsing: {1}".format(i, f)
 
     else:
 
