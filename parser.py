@@ -99,11 +99,11 @@ def sentence_length(c, s):
   if l <= 10:
     c.update({ "SF_LENGTH_1" : 1 })
   elif l <= 20:
-    c.update({ "SF_LENGTH_2" : 2 })
+    c.update({ "SF_LENGTH_2" : 1 })
   elif l <= 30:
-    c.update({ "SF_LENGTH_3" : 3 })
+    c.update({ "SF_LENGTH_3" : 1 })
   else:
-    c.update({ "SF_LENGTH_4" : 4 })
+    c.update({ "SF_LENGTH_4" : 1 })
 
 def paragraph_position(c, i, l):
   if i == 0: # First sentence in it's paragraph:
