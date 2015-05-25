@@ -21,7 +21,6 @@ from collections import Counter
 # Contains all parsing functions and surface feature extractors.
 # ------------------------------------
 def parse_folder(folder, output, flag):
-
   allSentences = []
   allSurfaceFeatures = []
 
@@ -35,8 +34,9 @@ def parse_folder(folder, output, flag):
 
       title, goldSummary = parse_summary(d)
       goldFilename = '{0}/gold_{1}.txt'.format(output, key)
-      with open(goldFilename, 'w') as gf: gf.write (goldSummary)
+      with open(goldFilename, 'w') as gf: gf.write (' '.join(goldSummary))
       print "[{0}] Summary for {1} ({2})  --->  {3}".format(i, f, title, goldFilename)
+      allSentences.append(goldSummary)
 
     elif flag == 1: # Extract surface features from body and write to output folder:
 
@@ -61,7 +61,7 @@ def parse_folder(folder, output, flag):
 def parse_summary(d):
   title = d('title').text()
   summaryElem = d('summary')
-  summary = ' '.join([ c.text.encode('utf-8') for c in summaryElem.children() ])
+  summary = [ c.text.encode('utf-8') for c in summaryElem.children() ]
   return title, summary
 
 

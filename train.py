@@ -18,10 +18,10 @@ outputXML = sys.argv[3]
 # TRAIN:
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 
-parse_folder(inputXML, outputGold, 0)
+summaries, _ = parse_folder(inputXML, outputGold, 0)
 allSentences, allSurfaceFeatures = parse_folder(inputXML, outputXML, 1)
 
-print allSentences[0][0]
+print summaries
 
 
 
