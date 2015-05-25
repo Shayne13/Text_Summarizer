@@ -24,38 +24,37 @@ def parse_folder(folder, output, flag):
   allSentences = []
   allSurfaceFeatures = []
 
-  print "Parsing files in: {0} ...".format(folder)
+  # print "Parsing files in: {0} ...".format(folder)
   sentenceDetector = nltk.data.load('tokenizers/punkt/english.pickle')
   for i, f in enumerate(os.listdir(folder)):
+    # codecs.open('C:\Python26\text.txt', 'r', 'utf-8-sig')
     key = f.split('.')[0]
     d = pq(filename = "./{0}/{1}".format(folder, f))
 
     if flag == 0: # Extract and write gold summaries to output folder:
 
-      title, goldSummarySentences = parse_summary(d, sentenceDetector)
+      title, goldSummarySentences, summaryFeatures = parse_summary(d, sentenceDetector)
       goldFilename = '{0}/gold_{1}.txt'.format(output, key)
-      with open(goldFilename, 'w') as gf: gf.write (' '.join(goldSummarySentences))
-      print "[{0}] Summary for {1} ({2})  --->  {3}".format(i, f, title, goldFilename)
+      with codecs.open(goldFilename, 'w', 'utf-8-sig') as gf: gf.write(u'\n'.join(goldSummarySentences))
+
+      # with open(goldFilename, 'w') as gf: gf.write ('\n'.join(goldSummarySentences))
+      # print "[{0}] Summary for {1} ({2})  --->  {3}".format(i, f, title, goldFilename)
       allSentences.append(goldSummarySentences)
-      
-      summaryFeatureSet = {}
-      sentenceIndex = 0
-      for i, sentence in enumerate(goldSummarySentences):
-        summaryFeatureSet[sentenceIndex] = get_surface_features(sentence)
-        sentenceIndex += 1
-      allSurfaceFeatures.append(summaryFeatureSet)
-        
+      allSurfaceFeatures.append(summaryFeatures)
+
     elif flag == 1: # Extract surface features from body and write to output folder:
 
-      print "[{0}] Parsing: {1}".format(i, f)
+      # print "[{0}] Parsing: {1}".format(i, f)
       sentences, fileSurfaceFeatures = parse_body(d, sentenceDetector)
-      contents = [ "{0}: {1}".format(k, v) for k, v in sentences.items() ]
       trainExFilename = '{0}/train_{1}.txt'.format(output, key)
-      with open(trainExFilename, 'w') as ff: ff.write (str(contents))
+      with codecs.open(trainExFilename, 'w', 'utf-8-sig') as ff: ff.write(u'\n'.join(sentences))
+
+      # with open(trainExFilename, 'w') as ff: ff.write ('\n'.join(sentences))
       allSentences.append(sentences)
       allSurfaceFeatures.append(fileSurfaceFeatures)
 
     else:
+
       print 'Invalid flag argument.'
 
   return allSentences, allSurfaceFeatures
@@ -63,42 +62,41 @@ def parse_folder(folder, output, flag):
 
 # Fn: parse_summary( <pyquery xml document> )
 # ----------------------------------------------------------------
-# Returns title and summary as text.
+# Returns title and summary as text, and summary features as a list.
 # ----------------------------------------------------------------
 def parse_summary(d, sentenceDetector):
   title = d('title').text()
   summaryElem = d('summary')
-  fullSummary = ' '.join([ c.text.encode('ascii', 'ignore') for c in summaryElem.children() ])
+  fullSummary = u' '.join([ c.text for c in summaryElem.children() ])
   summary = sentenceDetector.tokenize(fullSummary)
-  return title, summary
+  summaryFeatures = [ get_surface_features(s) for s in summary ]
+  return title, summary, summaryFeatures
 
 
 # Fn: parse_body( <pyquery xml document>, <nltk sentence detector> )
 # ----------------------------------------------------------------
-# Returns title and summary as text.
+# Returns list of sentences and features for those sentences.
 # ----------------------------------------------------------------
 def parse_body(document, sentenceDetector):
-  articleFeatureSet = {}
-  articleSentences = {}
-  sentenceIndex = 0
+  articleFeatureSet = []
+  articleSentences = []
   bodyElem = document('body')
   for sect in bodyElem('section').items():
     for paragraphElem in sect('p').items():
       sentences = sentenceDetector.tokenize(paragraphElem.text().strip())
       l = len(sentences)
       for i, sentence in enumerate(sentences):
-        articleFeatureSet[sentenceIndex] = get_surface_features(sentence)
-        articleSentences[sentenceIndex] = sentence.encode("ascii","ignore")
-        sentenceIndex += 1
+        articleFeatureSet.append(get_surface_features(sentence))
+        articleSentences.append(sentence)
   return articleSentences, articleFeatureSet
 
 
 def get_surface_features(sentence):
     surfaceFeatures = Counter()
-    
+
     sentence_length(surfaceFeatures, sentence)
     # paragraph_position(surfaceFeatures, i, l)
-    
+
     return surfaceFeatures
 
 
@@ -109,21 +107,21 @@ def get_surface_features(sentence):
 def sentence_length(c, s):
   l = len(s.split(' ')) # TODO: Alternative to this with nltk?
   if l <= 10:
-    c.update({ "SF_LENGTH_1" : 1 })
+    c.update({ "SF_LENGTH_1" : 1.0 })
   elif l <= 20:
-    c.update({ "SF_LENGTH_2" : 1 })
+    c.update({ "SF_LENGTH_2" : 1.0 })
   elif l <= 30:
-    c.update({ "SF_LENGTH_3" : 1 })
+    c.update({ "SF_LENGTH_3" : 1.0 })
   else:
-    c.update({ "SF_LENGTH_4" : 1 })
+    c.update({ "SF_LENGTH_4" : 1.0 })
 
 def paragraph_position(c, i, l):
   if i == 0: # First sentence in it's paragraph:
-    c.update({ "PARAGRAPH_START_POS" : 1 })
+    c.update({ "PARAGRAPH_START_POS" : 1.0 })
   elif i == l - 1: # Middle sentence in it's paragraph:
-    c.update({ "PARAGRAPH_END_POS" : 1 })
+    c.update({ "PARAGRAPH_END_POS" : 1.0 })
   else: # Last sentence in it's paragraph:
-    c.update({ "PARAGRAPH_MID_POS" : 1 })
+    c.update({ "PARAGRAPH_MID_POS" : 1.0 })
 
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # SCRIPT EXECUTION:

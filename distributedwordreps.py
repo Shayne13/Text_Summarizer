@@ -22,23 +22,23 @@ import scipy.spatial.distance
 from numpy.linalg import svd
 # For visualization:
 from tsne import tsne # See http://lvdmaaten.github.io/tsne/#implementations
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 # For clustering in the 'Word-sense ambiguities' section:
 from sklearn.cluster import AffinityPropagation
 
 ######################################################################
 # Reading in matrices
 
-def build(src_filename, delimiter=',', header=True, quoting=csv.QUOTE_MINIMAL):    
+def build(src_filename, delimiter=',', header=True, quoting=csv.QUOTE_MINIMAL):
     reader = csv.reader(file(src_filename), delimiter=delimiter, quoting=quoting)
     colnames = None
     if header:
         colnames = reader.next()
         colnames = colnames[1: ]
-    mat = []    
+    mat = []
     rownames = []
-    for line in reader:        
-        rownames.append(line[0])            
+    for line in reader:
+        rownames.append(line[0])
         mat.append(np.array(map(float, line[1: ])))
     return (np.array(mat), rownames, colnames)
 
@@ -49,7 +49,7 @@ def euclidean(u, v):
     # Use scipy's method:
     return scipy.spatial.distance.euclidean(u, v)
     # Or define it yourself:
-    # return vector_length(u - v)    
+    # return vector_length(u - v)
 
 def vector_length(u):
     return np.sqrt(np.dot(u, u))
@@ -85,7 +85,7 @@ def prob_norm(u):
     return u / np.sum(u)
 
 def pmi(mat=None, rownames=None, positive=True):
-    """PMI on mat; positive=True does PPMI. rownames is not used; it's 
+    """PMI on mat; positive=True does PPMI. rownames is not used; it's
     an argument only for consistency with other methods used here"""
     # Joint probability table:
     p = mat / np.sum(mat, axis=None)
@@ -93,7 +93,7 @@ def pmi(mat=None, rownames=None, positive=True):
     colprobs = np.sum(p, axis=0)
     # Vectorize this function so that it can be applied rowwise:
     np_pmi_log = np.vectorize((lambda x : _pmi_log(x, positive=positive)))
-    p = np.array([np_pmi_log(row / (np.sum(row)*colprobs)) for row in p])   
+    p = np.array([np_pmi_log(row / (np.sum(row)*colprobs)) for row in p])
     return (p, rownames)
 
 def _pmi_log(x, positive=True):
@@ -107,7 +107,7 @@ def _pmi_log(x, positive=True):
     return val
 
 def tfidf(mat=None, rownames=None):
-    """TF-IDF on mat. rownames is unused; it's an argument only 
+    """TF-IDF on mat. rownames is unused; it's an argument only
     for consistency with other methods used here"""
     colsums = np.sum(mat, axis=0)
     doccount = mat.shape[1]
@@ -127,7 +127,7 @@ def _tfidf_row_func(row, colsums, doccount):
 # Dimensionality reduction
 
 def lsa(mat=None, rownames=None, k=100):
-    """svd with a column-wise truncation to k dimensions; rownames 
+    """svd with a column-wise truncation to k dimensions; rownames
     is passed through only for consistency with other methods"""
     rowmat, singvals, colmat = svd(mat, full_matrices=False)
     singvals = np.diag(singvals)
@@ -145,7 +145,7 @@ def tsne_viz(
         output_filename=None,
         figheight=40,
         figwidth=50,
-        display_progress=False): 
+        display_progress=False):
     """2d plot of mat using tsne, with the points labeled by rownames,
     aligned with colors (defaults to all black).
     If indices is a list of indices into mat and rownames,
@@ -164,29 +164,29 @@ def tsne_viz(
     sys.stdout = temp
     # Plot coordinates:
     if not indices:
-        indices = range(len(rownames))        
+        indices = range(len(rownames))
     vocab = np.array(rownames)[indices]
-    xvals = tsnemat[indices, 0] 
+    xvals = tsnemat[indices, 0]
     yvals = tsnemat[indices, 1]
     # Plotting:
-    fig, ax = plt.subplots(nrows=1, ncols=1)
-    fig.set_figheight(40)
-    fig.set_figwidth(50)
-    ax.plot(xvals, yvals, marker='', linestyle='')
-    # Text labels:
-    for word, x, y, color in zip(vocab, xvals, yvals, colors):
-        ax.annotate(word, (x, y), fontsize=8, color=color)
-    # Output:
-    if output_filename:
-        plt.savefig(output_filename, bbox_inches='tight')
-    else:
-        plt.show()
+    # fig, ax = plt.subplots(nrows=1, ncols=1)
+    # fig.set_figheight(40)
+    # fig.set_figwidth(50)
+    # ax.plot(xvals, yvals, marker='', linestyle='')
+    # # Text labels:
+    # for word, x, y, color in zip(vocab, xvals, yvals, colors):
+    #     ax.annotate(word, (x, y), fontsize=8, color=color)
+    # # Output:
+    # if output_filename:
+    #     plt.savefig(output_filename, bbox_inches='tight')
+    # else:
+    #     plt.show()
 
 ######################################################################
 # Semantic orientation method
-        
+
 def semantic_orientation(
-        mat=None, 
+        mat=None,
         rownames=None,
         seeds1=['bad', 'nasty', 'poor', 'negative', 'unfortunate', 'wrong', 'inferior'],
         seeds2=['good', 'nice', 'excellent', 'positive', 'fortunate', 'correct', 'superior'],
@@ -201,11 +201,11 @@ def so_seed_matrix(seeds, mat, rownames):
     if not indices:
         raise ValueError('The matrix contains no members of the seed set: %s' % ",".join(seeds))
     return mat[np.array(indices)]
-    
+
 def so_row_func(row, sm1, sm2, distfunc):
     val1 = np.sum([distfunc(row, srow) for srow in sm1])
     val2 = np.sum([distfunc(row, srow) for srow in sm2])
-    return val1 - val2    
+    return val1 - val2
 
 ######################################################################
 # Disambiguation
@@ -216,7 +216,7 @@ def disambiguate(mat=None, rownames=None, minval=0.0):
     # For each word, cluster the documents containing it:
     for w_index, w in enumerate(rownames):
         doc_indices = np.array([j for j in range(mat.shape[1]) if mat[w_index,j] > minval])
-        clust = cluster(mat, doc_indices) 
+        clust = cluster(mat, doc_indices)
         for doc_index, c_index in clust:
             w_sense = "%s_%s" % (w, c_index)
             clustered[w_sense][doc_index] = mat[w_index, doc_index]
@@ -224,17 +224,17 @@ def disambiguate(mat=None, rownames=None, minval=0.0):
     new_rownames = sorted(clustered.keys())
     new_mat = np.zeros((len(new_rownames), mat.shape[1]))
     for i, w in enumerate(new_rownames):
-        for j in clustered[w]:            
+        for j in clustered[w]:
             new_mat[i,j] = clustered[w][j]
     return (new_mat, new_rownames)
 
-def cluster(mat, doc_indices):    
+def cluster(mat, doc_indices):
     X = mat[:, doc_indices].T
-    # Other clustering algorithms can easily be swapped in: 
+    # Other clustering algorithms can easily be swapped in:
     # http://scikit-learn.org/stable/modules/classes.html#module-sklearn.cluster
     clust = AffinityPropagation()
-    clust.fit(X)    
-    return zip(doc_indices,  clust.labels_)     
+    clust.fit(X)
+    return zip(doc_indices,  clust.labels_)
 
 ######################################################################
 # GloVe word representations
@@ -244,45 +244,45 @@ def randmatrix(m, n, lower=-0.5, upper=0.5):
     return np.array([random.uniform(lower, upper) for i in range(m*n)]).reshape(m, n)
 
 def glove(
-        mat=None, rownames=None, 
-        n=100, xmax=100, alpha=0.75, 
-        iterations=100, learning_rate=0.05, 
+        mat=None, rownames=None,
+        n=100, xmax=100, alpha=0.75,
+        iterations=100, learning_rate=0.05,
         display_progress=False):
     """Basic GloVe. rownames is passed through unused for compatibility
     with other methods. n sets the dimensionality of the output vectors.
     xmax and alpha controls the weighting function (see the paper, eq. (9)).
     iterations and learning_rate control the SGD training.
-    display_progress=True prints iterations and current error to stdout."""    
+    display_progress=True prints iterations and current error to stdout."""
     m = mat.shape[0]
     W = randmatrix(m, n) # Word weights.
     C = randmatrix(m, n) # Context weights.
     B = randmatrix(2, m) # Word and context biases.
     indices = range(m)
     for iteration in range(iterations):
-        error = 0.0        
+        error = 0.0
         random.shuffle(indices)
         for i, j in itertools.product(indices, indices):
-            if mat[i,j] > 0.0:     
+            if mat[i,j] > 0.0:
                 # Weighting function from eq. (9)
                 weight = (mat[i,j] / xmax)**alpha if mat[i,j] < xmax else 1.0
                 # Cost is J' based on eq. (8) in the paper:
-                diff = np.dot(W[i], C[j]) + B[0,i] + B[1,j] - np.log(mat[i,j])                
-                fdiff = diff * weight                
+                diff = np.dot(W[i], C[j]) + B[0,i] + B[1,j] - np.log(mat[i,j])
+                fdiff = diff * weight
                 # Gradients:
                 wgrad = fdiff * C[j]
                 cgrad = fdiff * W[i]
                 wbgrad = fdiff
                 wcgrad = fdiff
                 # Updates:
-                W[i] -= (learning_rate * wgrad) 
-                C[j] -= (learning_rate * cgrad) 
-                B[0,i] -= (learning_rate * wbgrad) 
-                B[1,j] -= (learning_rate * wcgrad)                 
-                # One-half squared error term:                              
+                W[i] -= (learning_rate * wgrad)
+                C[j] -= (learning_rate * cgrad)
+                B[0,i] -= (learning_rate * wbgrad)
+                B[1,j] -= (learning_rate * wcgrad)
+                # One-half squared error term:
                 error += 0.5 * weight * (diff**2)
         if display_progress:
             print "iteration %s: error %s" % (iteration, error)
-    # Return the sum of the word and context matrices, per the advice 
+    # Return the sum of the word and context matrices, per the advice
     # in section 4.2:
     return (W + C, rownames)
 
@@ -293,52 +293,52 @@ def glove_viz(mat=None, rownames=None, word_count=1000, iterations=10, n=50, dis
 
 ######################################################################
 # Shallow neural networks
-    
+
 from numpy import dot, outer
 
 class ShallowNeuralNetwork:
-    def __init__(self, input_dim=0, hidden_dim=0, output_dim=0, afunc=np.tanh, d_afunc=(lambda z : 1.0 - z**2)):        
-        self.afunc = afunc 
-        self.d_afunc = d_afunc      
-        self.input = np.ones(input_dim+1)   # +1 for the bias                                         
-        self.hidden = np.ones(hidden_dim+1) # +1 for the bias        
-        self.output = np.ones(output_dim)        
+    def __init__(self, input_dim=0, hidden_dim=0, output_dim=0, afunc=np.tanh, d_afunc=(lambda z : 1.0 - z**2)):
+        self.afunc = afunc
+        self.d_afunc = d_afunc
+        self.input = np.ones(input_dim+1)   # +1 for the bias
+        self.hidden = np.ones(hidden_dim+1) # +1 for the bias
+        self.output = np.ones(output_dim)
         self.iweights = randmatrix(input_dim+1, hidden_dim)
-        self.oweights = randmatrix(hidden_dim+1, output_dim)        
+        self.oweights = randmatrix(hidden_dim+1, output_dim)
         self.oerr = np.zeros(output_dim)
         self.ierr = np.zeros(input_dim+1)
-        
-    def forward_propagation(self, ex):        
+
+    def forward_propagation(self, ex):
         self.input[ : -1] = ex # ignore the bias
         self.hidden[ : -1] = self.afunc(dot(self.input, self.iweights)) # ignore the bias
         self.output = self.afunc(dot(self.hidden, self.oweights))
         return copy.deepcopy(self.output)
-        
+
     def backward_propagation(self, labels, alpha=0.5):
-        labels = np.array(labels)       
+        labels = np.array(labels)
         self.oerr = (labels-self.output) * self.d_afunc(self.output)
         herr = dot(self.oerr, self.oweights.T) * self.d_afunc(self.hidden)
         self.oweights += alpha * outer(self.hidden, self.oerr)
         self.iweights += alpha * outer(self.input, herr[:-1]) # ignore the bias
         return np.sum(0.5 * (labels-self.output)**2)
 
-    def train(self, training_data, maxiter=5000, alpha=0.05, epsilon=1.5e-8, display_progress=False):       
+    def train(self, training_data, maxiter=5000, alpha=0.05, epsilon=1.5e-8, display_progress=False):
         iteration = 0
         error = sys.float_info.max
-        while error > epsilon and iteration < maxiter:            
+        while error > epsilon and iteration < maxiter:
             error = 0.0
             random.shuffle(training_data)
             for ex, labels in training_data:
                 self.forward_propagation(ex)
-                error += self.backward_propagation(labels, alpha=alpha)           
+                error += self.backward_propagation(labels, alpha=alpha)
             if display_progress:
                 print 'completed iteration %s; error is %s' % (iteration, error)
             iteration += 1
-                    
+
     def predict(self, ex):
         self.forward_propagation(ex)
         return copy.deepcopy(self.output)
-        
+
     def hidden_representation(self, ex):
         self.forward_propagation(ex)
         return self.hidden
@@ -347,8 +347,8 @@ def read_valence_arousal_dominance_lexicon(src_filename='distributedwordreps-dat
     rescaler = (lambda x : np.tanh(float(x)-5))
     lex = {}
     for d in csv.DictReader(file(src_filename)):
-        vals = {'valence': rescaler(d['V.Mean.Sum']), 
-                'arousal': rescaler(d['A.Mean.Sum']), 
+        vals = {'valence': rescaler(d['V.Mean.Sum']),
+                'arousal': rescaler(d['A.Mean.Sum']),
                 'dominance': rescaler(d['D.Mean.Sum'])}
         lex[d['Word']] = vals
     return lex
@@ -363,11 +363,11 @@ def build_supervised_dataset(mat=None, rownames=None, lex=None):
     return (data, vocab)
 
 def sentiment_lexicon_example(
-        mat=None, 
-        rownames=None, 
-        hidden_dim=100, 
-        maxiter=1000, 
-        output_filename=None, 
+        mat=None,
+        rownames=None,
+        hidden_dim=100,
+        maxiter=1000,
+        output_filename=None,
         display_progress=False):
     # Get the lexicon:
     lex = read_valence_arousal_dominance_lexicon()
@@ -384,14 +384,14 @@ def sentiment_lexicon_example(
     def colormap(vals):
         """Simple way to distinguish the 2x2x2 possible labels -- could be done much better!"""
         signs = ['CC' if x < 0.0 else '00' for _, x in sorted(vals.items())]
-        return "#" + "".join(signs)    
+        return "#" + "".join(signs)
     colors = [colormap(lex[word]) for word in sentivocab]
     tsne_viz(mat=sentihidden, rownames=sentivocab, colors=colors, display_progress=display_progress, output_filename=output_filename)
 
 ######################################################################
-# Word similarity task   
+# Word similarity task
 
-def word_similarity_evaluation(src_filename="distributedwordreps-data/wordsim353/combined.csv", 
+def word_similarity_evaluation(src_filename="distributedwordreps-data/wordsim353/combined.csv",
         mat=None, rownames=None, distfunc=cosine):
     # Read in the data:
     reader = csv.DictReader(file(src_filename))
@@ -407,7 +407,7 @@ def word_similarity_evaluation(src_filename="distributedwordreps-data/wordsim353
             vocab.add(w1)
             vocab.add(w2)
     # Evaluate the matrix by creating a vector of all_scores for the wordsim353 data
-    # and all_dists for mat's distances. 
+    # and all_dists for mat's distances.
     all_scores = []
     all_dists = []
     for word in vocab:
@@ -417,7 +417,7 @@ def word_similarity_evaluation(src_filename="distributedwordreps-data/wordsim353
         all_scores += scores
         all_dists += [distfunc(vec, mat[rownames.index(w)]) for w in cmps]
     # Return just the rank correlation coefficient (index [1] would be the p-value):
-    return scipy.stats.spearmanr(all_scores, all_dists)[0]   
+    return scipy.stats.spearmanr(all_scores, all_dists)[0]
 
 ######################################################################
 # Analogy completion task
@@ -432,9 +432,9 @@ def analogy_completion(a, b, c, mat=None, rownames=None, distfunc=cosine):
     cvec = mat[rownames.index(c)]
     newvec = (bvec - avec) + cvec
     dists = [(w, distfunc(newvec, mat[i])) for i, w in enumerate(rownames) if w not in (a, b, c)]
-    return sorted(dists, key=itemgetter(1), reverse=False)    
+    return sorted(dists, key=itemgetter(1), reverse=False)
 
-def analogy_evaluation(src_filename="distributedwordreps-data/question-data/gram1-adjective-to-adverb.txt", 
+def analogy_evaluation(src_filename="distributedwordreps-data/question-data/gram1-adjective-to-adverb.txt",
         mat=None, rownames=None, distfunc=cosine):
     # Read in the data and restrict to problems we can solve:
     data = [line.split() for line in open(src_filename).read().splitlines()]

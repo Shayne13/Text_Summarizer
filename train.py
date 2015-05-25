@@ -1,27 +1,28 @@
-#!/usr/bin/env python
-
 from parser import *
 
-# Arg Check:
-# ------------------------------------
-if len(sys.argv) != 4:
-  sys.exit('''Please pass in the following arguments:
-1. The folder of xml files to be parsed.
-2. The output folder for gold summaries.
-3. The output folder for parsed training files.''')
+from wordentail import sklearn
+from sklearn.feature_selection import RFE
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.feature_selection import SelectFpr, chi2
+from sklearn.linear_model import LogisticRegression
+from sklearn.grid_search import GridSearchCV
+from sklearn.cross_validation import cross_val_score
+from sklearn import metrics
 
-inputXML = sys.argv[1]
-outputGold = sys.argv[2]
-outputXML = sys.argv[3]
+inputXML = "sample_rawdata"
+outputGold = "sample_gold"
+outputXML = "sample_train"
 
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # TRAIN:
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 
-summaries, _ = parse_folder(inputXML, outputGold, 0)
+summaries, summaryFeatures = parse_folder(inputXML, outputGold, 0)
 allSentences, allSurfaceFeatures = parse_folder(inputXML, outputXML, 1)
 
-print summaries
+# LABELS = ['SUMMARY', 'BODY']
+# vectorizer = DictVectorizer(sparse=False)
+# X = vectorizer.fit_transform(feats)
 
 
 
