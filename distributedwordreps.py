@@ -343,15 +343,15 @@ class ShallowNeuralNetwork:
         self.forward_propagation(ex)
         return self.hidden
 
-def read_valence_arousal_dominance_lexicon(src_filename='distributedwordreps-data/Warriner_et_al emot ratings.csv'):
-    rescaler = (lambda x : np.tanh(float(x)-5))
-    lex = {}
-    for d in csv.DictReader(file(src_filename)):
-        vals = {'valence': rescaler(d['V.Mean.Sum']),
-                'arousal': rescaler(d['A.Mean.Sum']),
-                'dominance': rescaler(d['D.Mean.Sum'])}
-        lex[d['Word']] = vals
-    return lex
+# def read_valence_arousal_dominance_lexicon(src_filename='distributedwordreps-data/Warriner_et_al emot ratings.csv'):
+#     rescaler = (lambda x : np.tanh(float(x)-5))
+#     lex = {}
+#     for d in csv.DictReader(file(src_filename)):
+#         vals = {'valence': rescaler(d['V.Mean.Sum']),
+#                 'arousal': rescaler(d['A.Mean.Sum']),
+#                 'dominance': rescaler(d['D.Mean.Sum'])}
+#         lex[d['Word']] = vals
+#     return lex
 
 def build_supervised_dataset(mat=None, rownames=None, lex=None):
     data = []
@@ -391,33 +391,33 @@ def sentiment_lexicon_example(
 ######################################################################
 # Word similarity task
 
-def word_similarity_evaluation(src_filename="distributedwordreps-data/wordsim353/combined.csv",
-        mat=None, rownames=None, distfunc=cosine):
-    # Read in the data:
-    reader = csv.DictReader(file(src_filename))
-    sims = defaultdict(list)
-    vocab = set([])
-    for d in reader:
-        w1 = d['Word 1']
-        w2 = d['Word 2']
-        if w1 in rownames and w2 in rownames:
-            # Use negative of scores to align intuitively with distance functions:
-            sims[w1].append((w2, -float(d['Human (mean)'])))
-            sims[w2].append((w1, -float(d['Human (mean)'])))
-            vocab.add(w1)
-            vocab.add(w2)
-    # Evaluate the matrix by creating a vector of all_scores for the wordsim353 data
-    # and all_dists for mat's distances.
-    all_scores = []
-    all_dists = []
-    for word in vocab:
-        vec = mat[rownames.index(word)]
-        vals = sims[word]
-        cmps, scores = zip(*vals)
-        all_scores += scores
-        all_dists += [distfunc(vec, mat[rownames.index(w)]) for w in cmps]
-    # Return just the rank correlation coefficient (index [1] would be the p-value):
-    return scipy.stats.spearmanr(all_scores, all_dists)[0]
+# def word_similarity_evaluation(src_filename="distributedwordreps-data/wordsim353/combined.csv",
+#         mat=None, rownames=None, distfunc=cosine):
+#     # Read in the data:
+#     reader = csv.DictReader(file(src_filename))
+#     sims = defaultdict(list)
+#     vocab = set([])
+#     for d in reader:
+#         w1 = d['Word 1']
+#         w2 = d['Word 2']
+#         if w1 in rownames and w2 in rownames:
+#             # Use negative of scores to align intuitively with distance functions:
+#             sims[w1].append((w2, -float(d['Human (mean)'])))
+#             sims[w2].append((w1, -float(d['Human (mean)'])))
+#             vocab.add(w1)
+#             vocab.add(w2)
+#     # Evaluate the matrix by creating a vector of all_scores for the wordsim353 data
+#     # and all_dists for mat's distances.
+#     all_scores = []
+#     all_dists = []
+#     for word in vocab:
+#         vec = mat[rownames.index(word)]
+#         vals = sims[word]
+#         cmps, scores = zip(*vals)
+#         all_scores += scores
+#         all_dists += [distfunc(vec, mat[rownames.index(w)]) for w in cmps]
+#     # Return just the rank correlation coefficient (index [1] would be the p-value):
+#     return scipy.stats.spearmanr(all_scores, all_dists)[0]
 
 ######################################################################
 # Analogy completion task
@@ -434,21 +434,21 @@ def analogy_completion(a, b, c, mat=None, rownames=None, distfunc=cosine):
     dists = [(w, distfunc(newvec, mat[i])) for i, w in enumerate(rownames) if w not in (a, b, c)]
     return sorted(dists, key=itemgetter(1), reverse=False)
 
-def analogy_evaluation(src_filename="distributedwordreps-data/question-data/gram1-adjective-to-adverb.txt",
-        mat=None, rownames=None, distfunc=cosine):
-    # Read in the data and restrict to problems we can solve:
-    data = [line.split() for line in open(src_filename).read().splitlines()]
-    data = [prob for prob in data if set(prob) <= set(rownames)]
-    # Run the evaluation, collecting accuracy and rankings:
-    results = defaultdict(int)
-    ranks = []
-    for a, b, c, d in data:
-        predicted = analogy_completion(a, b, c, mat=mat, rownames=rownames, distfunc=distfunc)
-        # print "%s is to %s as %s is to %s (actual is %s)" % (a, b, c, predicted, d)
-        results[predicted[0][0] == d] += 1
-        predicted_words, _ = zip(*predicted)
-        ranks.append(predicted_words.index(d))
-    # Return the mean reciprocal rank and the accuracy results:
-    mrr = np.mean(1.0/(np.array(ranks)+1))
-    return (mrr, results)
+# def analogy_evaluation(src_filename="distributedwordreps-data/question-data/gram1-adjective-to-adverb.txt",
+#         mat=None, rownames=None, distfunc=cosine):
+#     # Read in the data and restrict to problems we can solve:
+#     data = [line.split() for line in open(src_filename).read().splitlines()]
+#     data = [prob for prob in data if set(prob) <= set(rownames)]
+#     # Run the evaluation, collecting accuracy and rankings:
+#     results = defaultdict(int)
+#     ranks = []
+#     for a, b, c, d in data:
+#         predicted = analogy_completion(a, b, c, mat=mat, rownames=rownames, distfunc=distfunc)
+#         # print "%s is to %s as %s is to %s (actual is %s)" % (a, b, c, predicted, d)
+#         results[predicted[0][0] == d] += 1
+#         predicted_words, _ = zip(*predicted)
+#         ranks.append(predicted_words.index(d))
+#     # Return the mean reciprocal rank and the accuracy results:
+#     mrr = np.mean(1.0/(np.array(ranks)+1))
+#     return (mrr, results)
 
