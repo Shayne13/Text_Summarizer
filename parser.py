@@ -32,12 +32,19 @@ def parse_folder(folder, output, flag):
 
     if flag == 0: # Extract and write gold summaries to output folder:
 
-      title, goldSummary = parse_summary(d)
+      title, goldSummarySentences = parse_summary(d, sentenceDetector)
       goldFilename = '{0}/gold_{1}.txt'.format(output, key)
-      with open(goldFilename, 'w') as gf: gf.write (' '.join(goldSummary))
+      with open(goldFilename, 'w') as gf: gf.write (' '.join(goldSummarySentences))
       print "[{0}] Summary for {1} ({2})  --->  {3}".format(i, f, title, goldFilename)
-      allSentences.append(goldSummary)
-
+      allSentences.append(goldSummarySentences)
+      
+      summaryFeatureSet = {}
+      sentenceIndex = 0
+      for i, sentence in enumerate(goldSummarySentences):
+        summaryFeatureSet[sentenceIndex] = get_surface_features(sentence)
+        sentenceIndex += 1
+      allSurfaceFeatures.append(summaryFeatureSet)
+        
     elif flag == 1: # Extract surface features from body and write to output folder:
 
       print "[{0}] Parsing: {1}".format(i, f)
@@ -58,10 +65,11 @@ def parse_folder(folder, output, flag):
 # ----------------------------------------------------------------
 # Returns title and summary as text.
 # ----------------------------------------------------------------
-def parse_summary(d):
+def parse_summary(d, sentenceDetector):
   title = d('title').text()
   summaryElem = d('summary')
-  summary = [ c.text.encode('utf-8') for c in summaryElem.children() ]
+  fullSummary = ' '.join([ c.text.encode('ascii', 'ignore') for c in summaryElem.children() ])
+  summary = sentenceDetector.tokenize(fullSummary)
   return title, summary
 
 
@@ -69,25 +77,29 @@ def parse_summary(d):
 # ----------------------------------------------------------------
 # Returns title and summary as text.
 # ----------------------------------------------------------------
-def parse_body(d, sentenceDetector):
+def parse_body(document, sentenceDetector):
   articleFeatureSet = {}
   articleSentences = {}
   sentenceIndex = 0
-  bodyElem = d('body')
+  bodyElem = document('body')
   for sect in bodyElem('section').items():
     for paragraphElem in sect('p').items():
       sentences = sentenceDetector.tokenize(paragraphElem.text().strip())
       l = len(sentences)
-      for i, s in enumerate(sentences):
-        surfaceFeatures = Counter()
-
-        sentence_length(surfaceFeatures, s)
-        paragraph_position(surfaceFeatures, i, l)
-
-        articleFeatureSet[sentenceIndex] = surfaceFeatures
-        articleSentences[sentenceIndex] = s.encode("ascii","ignore")
+      for i, sentence in enumerate(sentences):
+        articleFeatureSet[sentenceIndex] = get_surface_features(sentence)
+        articleSentences[sentenceIndex] = sentence.encode("ascii","ignore")
         sentenceIndex += 1
   return articleSentences, articleFeatureSet
+
+
+def get_surface_features(sentence):
+    surfaceFeatures = Counter()
+    
+    sentence_length(surfaceFeatures, sentence)
+    # paragraph_position(surfaceFeatures, i, l)
+    
+    return surfaceFeatures
 
 
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
