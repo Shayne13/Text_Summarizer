@@ -1,5 +1,17 @@
 import itertools
-from wordentail import sklearn
+import random
+import pickle
+import numpy as np
+from operator import itemgetter
+import scipy
+import scipy.spatial.distance
+from numpy.linalg import svd
+# For visualization:
+# from tsne import tsne # See http://lvdmaaten.github.io/tsne/#implementations
+# import matplotlib.pyplot as plt
+# For clustering in the 'Word-sense ambiguities' section:
+from sklearn.cluster import AffinityPropagation
+from collections import defaultdict
 from sklearn.feature_selection import RFE
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_selection import SelectFpr, chi2
