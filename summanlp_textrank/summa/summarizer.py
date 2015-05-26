@@ -101,6 +101,7 @@ def summarize(text, ratio=0.2, words=None, language="english", split=False, scor
 
     # Ranks the tokens using the PageRank algorithm. Returns dict of sentence -> score
     pagerank_scores = _pagerank(graph)
+    print pagerank_scores
 
     # Adds the summa scores to the sentence objects.
     _add_scores_to_sentences(sentences, pagerank_scores)

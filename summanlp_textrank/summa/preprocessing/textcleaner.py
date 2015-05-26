@@ -184,7 +184,9 @@ def clean_text_by_sentences(text, language="english"):
     Returns a SyntacticUnit list. """
     init_textcleanner(language)
     original_sentences = split_sentences(text)
+    print original_sentences
     filtered_sentences = filter_words(original_sentences)
+    print filtered_sentences
 
     return merge_syntactic_units(original_sentences, filtered_sentences)
 
