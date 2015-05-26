@@ -38,7 +38,7 @@ def featurize(summarySF, bodySF):
 
 # TRAIN CLASSIFIER:
 def trainClassifier(features, labels):
-    mod = LogisticRegression(fit_intercept=True, intercept_scaling=1)
+    mod = LogisticRegression(fit_intercept=True, intercept_scaling=1, class_weight='auto')
     mod.fit_transform(features, labels)
     return mod
 

@@ -3,11 +3,15 @@
 import sys, os, nltk, codecs
 from pyquery import PyQuery as pq
 from nltk import word_tokenize
+from nltk.corpus import stopwords
 from collections import Counter
 
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # XML PARSER FUNCTIONS:
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+
+sentenceDetector = nltk.data.load('tokenizers/punkt/english.pickle')
+stopwords = stopwords.words('english')
 
 # ------------------------------------
 # Args:
@@ -24,9 +28,8 @@ def parse_folder(folder, output, flag):
 
   allSentences = []
   allSurfaceFeatures = []
-
   # print "Parsing files in: {0} ...".format(folder)
-  sentenceDetector = nltk.data.load('tokenizers/punkt/english.pickle')
+  
   for i, f in enumerate(os.listdir(folder)):
     # codecs.open('C:\Python26\text.txt', 'r', 'utf-8-sig')
     key = f.split('.')[0]
@@ -34,19 +37,19 @@ def parse_folder(folder, output, flag):
 
     if flag == 0: # Extract and write gold summaries to output folder:
 
-      title, goldSummarySentences, summaryFeatures = parse_summary(d, sentenceDetector)
+      title, goldSummarySentences, processedSummary, summaryFeatures = parse_summary(d)
       goldFilename = '{0}/gold_{1}.txt'.format(output, key)
       with codecs.open(goldFilename, 'w', 'utf-8-sig') as gf: gf.write(u'\n'.join(goldSummarySentences))
-      allSentences.append(goldSummarySentences)
+      allSentences.append(processedSummary)
       allSurfaceFeatures.append(summaryFeatures)
       # print "[{0}] Summary for {1} ({2})  --->  {3}".format(i, f, title, goldFilename)
 
     elif flag == 1: # Extract surface features from body and write to output folder:
 
-      sentences, fileSurfaceFeatures = parse_body(d, sentenceDetector)
+      sentences, processedSentences, fileSurfaceFeatures = parse_body(d)
       trainExFilename = '{0}/train_{1}.txt'.format(output, key)
       with codecs.open(trainExFilename, 'w', 'utf-8-sig') as ff: ff.write(u'\n'.join(sentences))
-      allSentences.append(sentences)
+      allSentences.append(processedSentences)
       allSurfaceFeatures.append(fileSurfaceFeatures)
       # print "[{0}] Parsing: {1}".format(i, f)
 
@@ -61,45 +64,63 @@ def parse_folder(folder, output, flag):
 # ----------------------------------------------------------------
 # Returns title and summary as text, and summary features as a list.
 # ----------------------------------------------------------------
-def parse_summary(d, sentenceDetector):
+def parse_summary(d):
   title = d('title').text()
+  summary = []
+  taggedSummary = []
+  summaryFeatures = []
   summaryElem = d('summary')
   fullSummary = u' '.join([ c.text for c in summaryElem.children() ])
-  summary = sentenceDetector.tokenize(fullSummary)
-  summaryFeatures = [ get_surface_features(s) for s in summary ]
-  return title, summary, summaryFeatures
+  summaryAsListOfSentences = sentenceDetector.tokenize(fullSummary)
+  for s in summaryAsListOfSentences:
+    processedSentence, surfaceFeatures = process_sentence(s)
+    summaryFeatures.append(surfaceFeatures)
+    taggedSummary.append(processedSentence)
+    summary.append(s)
+  return title, summary, taggedSummary, summaryFeatures
 
 
 # Fn: parse_body( <pyquery xml document>, <nltk sentence detector> )
 # ----------------------------------------------------------------
 # Returns list of sentences and features for those sentences.
 # ----------------------------------------------------------------
-def parse_body(document, sentenceDetector):
+def parse_body(document):
   articleFeatureSet = []
+  cleanedArticleSentences = []
   articleSentences = []
   bodyElem = document('body')
+
   for sect in bodyElem('section').items():
     for paragraphElem in sect('p').items():
       sentences = sentenceDetector.tokenize(paragraphElem.text().strip())
       l = len(sentences)
       for i, sentence in enumerate(sentences):
-        articleFeatureSet.append(get_surface_features(sentence))
+        processedSentence, surfaceFeatures = process_sentence(sentence)  
+        articleFeatureSet.append(surfaceFeatures)
+        cleanedArticleSentences.append(processedSentence)
         articleSentences.append(sentence)
-  return articleSentences, articleFeatureSet
+
+  return articleSentences, cleanedArticleSentences, articleFeatureSet
 
 
-def get_surface_features(sentence):
-    surfaceFeatures = Counter()
-
-    sentence_length(surfaceFeatures, sentence)
-    # paragraph_position(surfaceFeatures, i, l)
-
-    return surfaceFeatures
 
 
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # SUFRACE FEATURE EXTRACTORS:
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+
+def process_sentence(sentence):
+    surfaceFeatures = Counter()
+    
+    sentence_length(surfaceFeatures, sentence)
+    # paragraph_position(surfaceFeatures, i, l)
+    
+    words = word_tokenize(sentence)
+    taggedSentence = nltk.pos_tag(words)
+    cleanedSentence = [ w for w in taggedSentence if w[0] not in stopwords ]
+    
+    return cleanedSentence, surfaceFeatures
+
 
 def sentence_length(c, s):
   l = len(s.split(' ')) # TODO: Alternative to this with nltk?
