@@ -1,10 +1,10 @@
 <ROUGE-EVAL version="1.0">
 <EVAL ID="1">
 <PEER-ROOT>
-text_summarizer/systems
+ROUGE/text_summarizer/systems
 </PEER-ROOT>
 <MODEL-ROOT>
-text_summarizer/models
+ROUGE/text_summarizer/models
 </MODEL-ROOT>
 <INPUT-FORMAT TYPE="SEE">
 </INPUT-FORMAT>
