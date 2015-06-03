@@ -1,19 +1,18 @@
 <ROUGE-EVAL version="1.0">
 <EVAL ID="1">
 <PEER-ROOT>
-SL2003/systems
+text_summarizer/systems
 </PEER-ROOT>
 <MODEL-ROOT>
-SL2003/models
+text_summarizer/models
 </MODEL-ROOT>
 <INPUT-FORMAT TYPE="SEE">
 </INPUT-FORMAT>
 <PEERS>
-<P ID="11">SL.P.10.R.11.SL062003-01.html</P>
-<P ID="12">SL.P.10.R.12.SL062003-01.html</P>
+<P ID="1">1.html</P>
 </PEERS>
 <MODELS>
-<M ID="A">SL.P.10.R.A.SL062003-01.html</M>
+<M ID="A">1.html</M>
 </MODELS>
 </EVAL>
 </ROUGE-EVAL>
