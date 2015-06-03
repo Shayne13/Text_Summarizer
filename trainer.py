@@ -3,6 +3,7 @@ import random
 import pickle
 import numpy as np
 from operator import itemgetter
+from collections import Counter
 import scipy
 import scipy.spatial.distance
 from numpy.linalg import svd
@@ -25,20 +26,26 @@ from sklearn import metrics
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 
 # SET FEATURES AND LABELS:
-def featurize(summarySF, bodySF):
+def featurize(summaries, bodies, summarySF, bodySF):
     LABELS = ['SUMMARY', 'BODY']
     features = []
     labels = []
-    for docIndex in range(len(summarySF)):
-        features += summarySF[docIndex] + bodySF[docIndex]
-        labels += [LABELS[0]] * len(summarySF[docIndex]) + [LABELS[1]] * len(bodySF[docIndex])
+    for docIndex in range(len(summaries)):
+        allSummFeatures = [ summarySF[docIndex][i] + extract_features(s) for i, s in enumerate(summaries[docIndex]) ]
+        allBodyFeatures = [ bodySF[docIndex][i] + extract_features(s) for i, s in enumerate(bodies[docIndex]) ]
+        labels += [LABELS[0]] * len(allSummFeatures) + [LABELS[1]] * len(allBodyFeatures)
+        features += allSummFeatures + allBodyFeatures
     vectorizer = DictVectorizer(sparse=False)
     feature_matrix = vectorizer.fit_transform(features) # Features = List of training counters
     return feature_matrix, labels
 
+# EXTRACT ALL NON-SURFACE FEATURES:
+def extract_features(s):
+    return Counter()
+    
 # TRAIN CLASSIFIER:
 def trainClassifier(features, labels):
-    mod = LogisticRegression(fit_intercept=True, intercept_scaling=1)
+    mod = LogisticRegression(fit_intercept=True, intercept_scaling=1, class_weight='auto')
     mod.fit_transform(features, labels)
     return mod
 

@@ -15,6 +15,7 @@ Download:
 3. pyquery (xml parsing)
 4. nltk (word tokenization)
 5. [pandas](http://pandas.pydata.org/) - ashkonf_pagerank
+6. NetworkX (for textrank)
 --------------
 
 Files:
