@@ -13,7 +13,6 @@ except ImportError:
 CONVERGENCE_THRESHOLD = 0.0001
 
 
-
 def pagerank_weighted(graph, initial_value=None, damping=0.85):
     """Calculates PageRank for an undirected graph"""
     if initial_value == None: initial_value = 1.0 / len(graph.nodes())
@@ -48,6 +47,13 @@ def pagerank_weighted_scipy(graph, damping=0.85):
     vals, vecs = eig(pagerank_matrix, left=True, right=False)
     return process_results(graph, vecs)
 
+def pagerank_weighted_scipy_word(graph, damping=0.85):
+    adjacency_matrix = build_adjacency_matrix(graph)
+    probability_matrix = build_probability_matrix(graph)
+
+    pagerank_matrix = damping * adjacency_matrix.todense() + (1 - damping) * probability_matrix
+    vals, vecs = eig(pagerank_matrix, left=True, right=False)
+    return process_results_word(graph, vecs)
 
 def build_adjacency_matrix(graph):
     row = []
@@ -78,10 +84,16 @@ def build_probability_matrix(graph):
 
     return matrix
 
+def process_results_word(graph, vecs):
+    scores = {}
+    for i, node in enumerate(graph.nodes()):
+        scores[node] = abs(vecs[i][0])
+
+    return scores
 
 def process_results(graph, vecs):
     scores = {}
     for i, node in enumerate(graph.nodes()):
-        scores[node] = abs(vecs[i][0])
+        scores[(node.label, node.index)] = abs(vecs[i][0])
 
     return scores

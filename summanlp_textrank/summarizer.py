@@ -1,35 +1,90 @@
 
 from math import log10 as _log10
+import itertools
 from pagerank_weighted import pagerank_weighted_scipy as _pagerank
-from preprocessing.textcleaner import clean_text_by_sentences as _clean_text_by_sentences
+from textcleaner import clean_text_by_sentences as _clean_text_by_sentences
 from commons import build_graph as _build_graph
 from commons import remove_unreachable_nodes as _remove_unreachable_nodes
 
+from nltk.corpus import wordnet as wn
+
+def is_noun(tag):
+    return tag in ['NN', 'NNS', 'NNP', 'NNPS']
+
+def is_verb(tag):
+    return tag in ['VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
+
+def is_adverb(tag):
+    return tag in ['RB', 'RBR', 'RBS']
+
+def is_adjective(tag):
+    return tag in ['JJ', 'JJR', 'JJS']
+
+def penn_to_wn(tag):
+    if is_adjective(tag):
+        return wn.ADJ
+    elif is_noun(tag):
+        return wn.NOUN
+    elif is_adverb(tag):
+        return wn.ADV
+    elif is_verb(tag):
+        return wn.VERB
+    return None
+
 
 def _set_graph_edge_weights(graph):
-    for sentence_1 in graph.nodes():
-        for sentence_2 in graph.nodes():
+    for su1 in graph.nodes():
+        for su2 in graph.nodes():
 
-            edge = (sentence_1, sentence_2)
-            if sentence_1 != sentence_2 and not graph.has_edge(edge):
-                similarity = _get_similarity(sentence_1, sentence_2)
+            edge = (su1, su2)
+            if su1 != su2 and not graph.has_edge(edge):
+                similarity = _get_similarity(su1, su2)
                 if similarity != 0:
                     graph.add_edge(edge, similarity)
 
+def _get_similarity(su1, su2):
 
-def _get_similarity(s1, s2):
-    words_sentence_one = s1.split()
-    words_sentence_two = s2.split()
+    words1 = [ w for w in su1.processed if w[1] not in ['NNP', 'NNPS'] ]
+    words2 = [ w for w in su2.processed if w[1] not in ['NNP', 'NNPS'] ]
+    properNouns1 = [ w for w in su1.processed if w[1] in ['NNP', 'NNPS'] ]
+    properNouns2 = [ w for w in su2.processed if w[1] in ['NNP', 'NNPS'] ]
 
-    common_word_count = _count_common_words(words_sentence_one, words_sentence_two)
-
-    log_s1 = _log10(len(words_sentence_one))
-    log_s2 = _log10(len(words_sentence_two))
-
+    log_s1 = _log10(len(su1.processed)+1)
+    log_s2 = _log10(len(su2.processed)+1)
     if log_s1 + log_s2 == 0:
         return 0
 
-    return common_word_count / (log_s1 + log_s2)
+    eo = entail_overlap(words1, words2)
+    no = noun_overlap(properNouns1, properNouns2)
+    x = (eo + no) / (log_s1 + log_s2)
+
+    # if su1.index <= 3 and su2.index <= 5:
+    #     print "HELLO!!!!!!!"
+    #     print su1.text
+    #     print su2.text
+    #     print _count_common_words(su1.text.split(), su2.text.split())
+    #     print log_s1, log_s2
+    #     print eo, no
+    return x
+
+
+def entail_overlap(words1, words2):
+    overlap = 0
+    for (w1, w2) in itertools.product(words1, words2):
+        w1Lemmas = [ l for ss in wn.synsets(w1[0], penn_to_wn(w1[1])) for l in ss.lemmas() ]
+        w2Lemmas = [ l for ss in wn.synsets(w2[0], penn_to_wn(w2[1])) for l in ss.lemmas() ]
+        for l1 in w1Lemmas:
+            if l1 in w2Lemmas:
+                overlap += 1
+                break
+    return overlap
+
+def noun_overlap(pn1, pn2):
+    overlap = 0
+    for (w1, w2) in itertools.product(pn1, pn2):
+        if w1[0] == w2[0]:
+            overlap += 1
+    return overlap
 
 
 def _count_common_words(words_sentence_one, words_sentence_two):
@@ -101,7 +156,6 @@ def summarize(text, ratio=0.2, words=None, language="english", split=False, scor
 
     # Ranks the tokens using the PageRank algorithm. Returns dict of sentence -> score
     pagerank_scores = _pagerank(graph)
-    print pagerank_scores
 
     # Adds the summa scores to the sentence objects.
     _add_scores_to_sentences(sentences, pagerank_scores)
@@ -122,3 +176,4 @@ def get_graph(text, language="english"):
     _set_graph_edge_weights(graph)
 
     return graph
+

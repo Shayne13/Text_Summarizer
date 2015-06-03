@@ -1,9 +1,9 @@
 from itertools import combinations as _combinations
 from Queue import Queue as _Queue
 
-from pagerank_weighted import pagerank_weighted_scipy as _pagerank
-from preprocessing.textcleaner import clean_text_by_word as _clean_text_by_word
-from preprocessing.textcleaner import tokenize_by_word as _tokenize_by_word
+from pagerank_weighted import pagerank_weighted_scipy_word as _pagerank_word
+from textcleaner import clean_text_by_word as _clean_text_by_word
+from textcleaner import tokenize_by_word as _tokenize_by_word
 from commons import build_graph as _build_graph
 from commons import remove_unreachable_nodes as _remove_unreachable_nodes
 
