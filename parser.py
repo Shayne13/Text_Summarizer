@@ -169,6 +169,9 @@ def extract_surface_features(sentence, tagged):
     contains_punctuation(surfaceFeatures, sentence, "(")
     contains_punctuation(surfaceFeatures, sentence, "-")
     contains_punctuation(surfaceFeatures, sentence, ".")
+    contains_punctuation(surfaceFeatures, sentence, ".")
+    contains_punctuation(surfaceFeatures, sentence, ";")
+
 
     contains_word_type(surfaceFeatures, tagged, ['NN', 'NNS'])
     contains_word_type(surfaceFeatures, tagged, ['JJ', 'JJR', 'JJS'])
@@ -208,12 +211,18 @@ def sentence_length(c, s):
 def contains_punctuation(c, s, p):
     if p in s:
         c.update({ "CONTAINS_PUNCTUATION_{0}".format(p) : 1.0 })
+    else:
+        c.update({ "CONTAINS_PUNCTUATION_{0}".format(p) : 0.0 })
 
 def contains_word_type(c, t, tags):
+    update = False
     for w in t:
         if w[1] in tags:
             c.update({ "CONTAINS_WORD_TYPE_{0}".format(tags[0]) : 1.0 })
+            update = True
             break
+    if not update:
+        c.update({ "CONTAINS_WORD_TYPE_{0}".format(tags[0]) : 0.0 })
 
 def word_type_ratio(c, t, tags):
     ratio = sum(1.0 for w in t if w[1] in tags) / (len(t) * 1.0)
