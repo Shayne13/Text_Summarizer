@@ -65,4 +65,13 @@ from collections import defaultdict
 #!/bin/bash
 
 
+Useful shit:
+http://kavita-ganesan.com/rouge-howto
+Check for a module's installation path: 
+perldoc -l XML::DOM
+
+TO RUN ROUGE:
+perl ROUGE-1.5.5.pl -e data -f A -a -x -s -m -2 -4 -u text_summarizer/settings.xml
+
+
 
