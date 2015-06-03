@@ -16,7 +16,9 @@ except ImportError:
 from snowball import SnowballStemmer
 from stopwords import get_stopwords_by_language
 import re  # http://regex101.com/#python to test regex
-from summa.syntactic_unit import SyntacticUnit
+# from summa.syntactic_unit import SyntacticUnit
+from syntactic_unit import WordUnit
+
 
 SEPARATOR = r"@"
 RE_SENTENCE = re.compile('(\S.+?[.!?])(?=\s+|$)|(\S.+?)(?=[\n]|$)')  # backup (\S.+?[.!?])(?=\s+|$)|(\S.+?)(?=[\n]|$)
@@ -56,7 +58,12 @@ def init_textcleanner(language):
 
 def split_sentences(text):
     processed = replace_abbreviations(text)
-    return [undo_replacement(sentence) for sentence in get_sentences(processed)]
+    print 'PROCESSED: '
+    print processed
+    print 'NEXT PROCESS: '
+    x = [undo_replacement(sentence) for sentence in get_sentences(processed)]
+    print x
+    return x
 
 
 def replace_abbreviations(text):
@@ -171,7 +178,7 @@ def merge_syntactic_units(original_units, filtered_units, tags=None):
         text = original_units[i]
         token = filtered_units[i]
         tag = tags[i][1] if tags else None
-        sentence = SyntacticUnit(text, token, tag)
+        sentence = WordUnit(text, token, tag)
         sentence.index = i
 
         units.append(sentence)
@@ -183,11 +190,13 @@ def clean_text_by_sentences(text, language="english"):
     """ Tokenizes a given text into sentences, applying filters and lemmatizing them.
     Returns a SyntacticUnit list. """
     init_textcleanner(language)
+    print text
+    print '-------------------------------------------'
     original_sentences = split_sentences(text)
     print original_sentences
+    print '-------------------------------------------'
     filtered_sentences = filter_words(original_sentences)
     print filtered_sentences
-
     return merge_syntactic_units(original_sentences, filtered_sentences)
 
 
@@ -195,8 +204,14 @@ def clean_text_by_word(text, language="english"):
     """ Tokenizes a given text into words, applying filters and lemmatizing them.
     Returns a dict of word -> syntacticUnit. """
     init_textcleanner(language)
-    text_without_acronyms = replace_with_separator(text, "", [AB_ACRONYM_LETTERS])
-    original_words = list(tokenize(text_without_acronyms, to_lower=True, deacc=True))
+
+    text_without_acronyms = [ replace_with_separator(text[i].text, "", [AB_ACRONYM_LETTERS]) for i in range(len(text)) ]
+    original_sentences = [list(tokenize(text_without_acronyms[i], to_lower=True, deacc=True)) for i in range(len(text_without_acronyms))]
+    # original_words = list(tokenize(text_without_acronyms, to_lower=True, deacc=True))
+    original_words = []
+    for i, basicSentence in enumerate(original_sentences):
+        text[i].basic = u' '.join(basicSentence)
+        original_words += basicSentence
     filtered_words = filter_words(original_words)
     if HAS_PATTERN:
         tags = tag(" ".join(original_words)) # tag needs the context of the words in the text

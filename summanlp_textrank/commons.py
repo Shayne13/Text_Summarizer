@@ -1,6 +1,4 @@
-
 from graph import Graph
-
 
 def build_graph(sequence):
     graph = Graph()
