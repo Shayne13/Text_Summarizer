@@ -34,8 +34,7 @@ def runRouge():
     
     scores = [firstScore, secondScore, thirdScore]
     
-    avgScore = sum(scores)/3
-    return avgScore        
+    return max(scores)        
     
 def writeSentencesToFile(sentences, fileToWrite):
     fileToWrite.write('<html>' + "\n");
@@ -44,10 +43,16 @@ def writeSentencesToFile(sentences, fileToWrite):
 
     for index in range (0, len(sentences)):
         fileToWrite.write('<a name=\"' + str(index+1) + '">[' + str(index+1) + ']</a> <a href="#' + str(index+1) + '" id=' + str(index+1) + '>')
-        fileToWrite.write(sentences[index])
+        fileToWrite.write(sanitizeString(sentences[index]))
         fileToWrite.write('</a>'+"\n")
 
     fileToWrite.write('</body>'+"\n"+'</html>')    
+
+def sanitizeString(string):
+    if type(string) is str: return string.decode("utf-8")
+    elif type(string) is unicode: return unicodedata.normalize("NFKD", string).encode("ascii", "ignore")
+    else: return ""
+
 
 ### End of helper functions
 
