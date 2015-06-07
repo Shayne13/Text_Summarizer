@@ -56,7 +56,7 @@ def parse_and_process_xml(inputFolder, summaryFolder, bodyFolder, writeOption=No
 def parse_xml_folder(inputFolder, summaryFolder, bodyFolder, writeOption=None):
     print '<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>'
     print 'STAGE [1] -- PARSING XML -- from {0} ...'.format(inputFolder)
-    XMLFiles = os.listdir(inputFolder)
+    XMLFiles = listdir_nohidden(inputFolder) #os.listdir(inputFolder)
     articles = [ pq(filename = "./{0}/{1}".format(inputFolder, f)) for i, f in enumerate(XMLFiles) ]
     summaries = [ parse_xml_document(d, 'summary') for d in articles ]
     bodies = [ parse_xml_document(d, 'body') for d in articles ]
@@ -78,6 +78,12 @@ def parse_xml_folder(inputFolder, summaryFolder, bodyFolder, writeOption=None):
     labels = list(itertools.chain(*[([LABELS[0]]*len(summaries[i])) + ([LABELS[1]]*len(bodies[i])) for i in range(len(articles))]))
 
     return documents, labels
+
+def listdir_nohidden(path):
+    for f in os.listdir(path):
+        if not f.startswith('.'):
+            yield f
+
 
 # parse_xml_document( <pyquery document>, string)
 # ------------------------------------------------------------------------------
