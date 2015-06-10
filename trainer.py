@@ -70,7 +70,7 @@ def train_and_print_results(features, labels, modelFunction):
     predictions = model.predict(featMatrix)
     print ""
     print metrics.classification_report(labels, predictions)
-    return model 
+    return model, vectorizer
 
 def train_classifier_log_reg(features, labels):
     print "STAGE [4] -- TRAINING MODEL -- Logistic Regression ..."
