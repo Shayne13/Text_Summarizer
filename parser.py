@@ -294,16 +294,20 @@ def extract_surface_features(sentence, tagged):
 # Updates the counter to add this feature.
 # ------------------------------------------------------------------------------
 def sentence_length(c, s):
+    avg = 26 # mean and standard dev calculated earlier 
+    std = 12
     l = len(word_tokenize(s))
     # l = len(s.split(' '))
-    if l <= 10:
+    if l <= avg - 3*std/2:
         c.update({ "SENTENCE_LENGTH_1" : 1.0 })
-    elif l <= 20:
+    elif l <= avg -std/2:
         c.update({ "SENTENCE_LENGTH_2" : 1.0 })
-    elif l <= 30:
+    elif l <= avg + std/2:
         c.update({ "SENTENCE_LENGTH_3" : 1.0 })
+    elif l <= avg + 3*std/2:
+        c.update({ "SENTENCE_LENGTH_4" : 1.0 })        
     else:
-        c.update({ "SENTENCE_LENGTH_4" : 1.0 })
+        c.update({ "SENTENCE_LENGTH_5" : 1.0 })
 
 def contains_punctuation(c, s, p):
     if p in s:
