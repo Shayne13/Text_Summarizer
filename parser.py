@@ -1,11 +1,16 @@
 #!/usr/bin/env python
+#
+# Developed by: Shayne Longpre and Ajay Sohmshetty
+# Copyright and all rights reserved. 
+# 
 
 import sys, os, nltk, codecs, itertools
 from pyquery import PyQuery as pq
 from nltk import word_tokenize
 from nltk.corpus import stopwords
 from collections import Counter
-from syntactic_units import SentenceUnit, WordUnit
+from syntactic_unit import SentenceUnit, WordUnit
+from ngram import NGram # To get this: "pip install ngram"
 
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # XML PARSER FUNCTIONS:
@@ -14,6 +19,7 @@ from syntactic_units import SentenceUnit, WordUnit
 # Loading Sentence Detector and Stop Words List
 sentenceDetector = nltk.data.load('tokenizers/punkt/english.pickle')
 stopwords = stopwords.words('english')
+
 
 # parse_and_process_xml(string, string, string, string)
 # ------------------------------------------------------------------------------
@@ -34,6 +40,7 @@ stopwords = stopwords.words('english')
 # ------------------------------------------------------------------------------
 def parse_and_process_xml(inputFolder, summaryFolder, bodyFolder, writeOption=None):
     summaries, bodies = parse_xml_folder(inputFolder, summaryFolder, bodyFolder, writeOption)
+
     summarySF = process_data(summaries)
     bodySF = process_data(bodies)
     return summaries, bodies, summarySF, bodySF
@@ -61,6 +68,11 @@ def parse_xml_folder(inputFolder, summaryFolder, bodyFolder, writeOption=None):
     summaries = [ parse_xml_document(d, 'summary') for d in articles ]
     bodies = [ parse_xml_document(d, 'body') for d in articles ]
 
+    #print summaries[0]
+
+    # Need to remove any body sentences that are too similar to summary sentences 
+    #identifySummaryLikeSentences(summaries[0], bodies[0])
+
     if writeOption:
         if writeOption == 'summary':
             print 'STAGE [1.1] -- WRITING TXT -- summaries to {0}/ ...'.format(summaryFolder)
@@ -78,6 +90,17 @@ def parse_xml_folder(inputFolder, summaryFolder, bodyFolder, writeOption=None):
     labels = list(itertools.chain(*[([LABELS[0]]*len(summaries[i])) + ([LABELS[1]]*len(bodies[i])) for i in range(len(articles))]))
 
     return documents, labels
+
+def calculateSimilarity(sentence1, sentence2):
+    return NGram.compare(sentence1, sentence2, N=2)
+    
+
+def identifySummaryLikeSentences(summarySentences, bodySentences):
+    print "Checking similar summary like body sentences..."
+    for bodySentence in bodySentences:
+        for summarySentence in summarySentences:
+            if calculateSimilarity(bodySentence, summarySentence) > 0.1:
+                print "Hey!"
 
 def listdir_nohidden(path):
     for f in os.listdir(path):
@@ -177,6 +200,7 @@ def extract_surface_features(sentence, tagged):
     contains_punctuation(surfaceFeatures, sentence, ".")
     contains_punctuation(surfaceFeatures, sentence, ".")
     contains_punctuation(surfaceFeatures, sentence, ";")
+
 
 
     contains_word_type(surfaceFeatures, tagged, ['NN', 'NNS'])

@@ -1,11 +1,14 @@
+import sys
+
 class SentenceUnit(object):
 
-  def __init__(self, text, label, index, processed=None, basic=None):
+  def __init__(self, text, label, index, processed=None, basic=None, sectionName=""):
     self.text = text
     self.processed = processed
     self.label = label
     self.index = index
     self.basic = basic
+    self.sectionName = sectionName
 
   def __str__(self):
     return u'Original Text: ' + self.text.encode('utf-8')

@@ -18,7 +18,7 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import cross_val_score
 from sklearn import metrics
 
-from syntactic_units import SentenceUnit, WordUnit
+from syntactic_unit import SentenceUnit, WordUnit
 from Textrank import textrank
 
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
