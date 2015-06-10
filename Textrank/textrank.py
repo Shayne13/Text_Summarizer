@@ -19,6 +19,8 @@ def textrank_keyphrase(text):
         results.append(Counter({ 'TEXTRANK_SCORE': score }))
     return results
 
+
+##### TODO - not done yet
 def lexrank_keyphrase(text):
 
     # Creates the graph and calculates the similarity coefficient for every pair of nodes.

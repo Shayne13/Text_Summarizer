@@ -1,24 +1,24 @@
 (dp0
 I0
 (lp1
-VDuring those same years, the rate of home ownership was 34.0%, and the median value of owner-occupied units was $91,600.
+VIn the 20th\ufffdcentury, a light-aircraft factory, a college, and a paper mill, along with many smaller enterprises, drove the economy.
 p2
-aVThe median income for a household in the city was $27,055.
+aVThe city has three sites on the National Register of Historic Places\u2014Memorial Park Site, a significant pre-European archaeological find; Heisey House, a Victorian-era museum; and Water Street District, an area with a mix of 19th- and 20th-century architecture.
 p3
-aVThe city's biggest employers, Lock Haven University of Pennsylvania and Lock Haven Hospital, are among the seven biggest employers in Clinton County.
+aS'A television station, Havenscope, and a radio station, WLHU, both managed by students, operate on the university campus.'
 p4
-aVLock Haven is at 561 feet (171\ufffdm) above sea level near the confluence of Bald Eagle Creek and the West Branch Susquehanna River in north-central Pennsylvania.
+aVLocated near the confluence of the West Branch Susquehanna River and Bald Eagle Creek, it is the principal city of the Lock Haven, Pennsylvania, micropolitan statistical area, itself part of the Williamsport\u2013Lock Haven combined statistical area.
 p5
-aVThe average household size was 2.14.
+aVAn eight-room home, the Heisey House, restored to its mid-19th century appearance, displays Victorian-era collections; it was added to the National Register of Historic Places in 1972 and is home to the Clinton County Historical Society.
 p6
-aVCentral Mountain Middle School in Mill Hall is the nearest public middle school, for grades six to eight.
+aS'The city sponsors a festival called Airfest at the airport in the summer, a Halloween parade in October, and a holiday parade in December.'
 p7
-aVThe geologic formations in the southeastern part of the city are mostly limestone, while those to the north and west consist mostly of siltstone and shale.
+aVBuilt on a site long favored by pre-European peoples, Lock Haven began in 1833 as a timber town and a haven for loggers, boatmen, and other travelers on the river or the West Branch Canal.
 p8
-aVThe city has two private schools, Lock Haven Christian School, with about 80\ufffdstudents in kindergarten through 12th\ufffdgrade, and Lock Haven Catholic Elementary School, with about 190\ufffdstudents in kindergarten through sixth grade.
+aVThe central library for Clinton County is the Annie Halenbake Ross Library in Lock Haven; it has about 130,000\ufffdbooks, subscriptions to periodicals, electronic resources, and other materials.
 p9
-aVAbout 0.2 square miles (0.5\ufffdkm2), 6\ufffdpercent, is water.
+aVThe Piper Aviation Museum exhibits aircraft and aircraft equipment, documents, photographs, and memorabilia related to Piper Aircraft.
 p10
-aVIt was the westernmost of 11 mostly primitive forts along the West Branch; Fort Augusta, at what is now Sunbury, was the easternmost and most defensible.
+aVWhile industry remains important to the city, about a third of Lock Haven's workforce is employed in education, health care, or social services.
 p11
 as.
