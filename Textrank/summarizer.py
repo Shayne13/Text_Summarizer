@@ -1,12 +1,16 @@
-
 from math import log10 as _log10
+import math
 import itertools
 from pagerank_weighted import pagerank_weighted_scipy as _pagerank
 from textcleaner import clean_text_by_sentences as _clean_text_by_sentences
 from commons import build_graph as _build_graph
 from commons import remove_unreachable_nodes as _remove_unreachable_nodes
+import numpy as np
 
 from nltk.corpus import wordnet as wn
+from sklearn.feature_extraction.text import TfidfVectorizer
+from nltk.stem.porter import PorterStemmer
+from nltk import word_tokenize
 
 def is_noun(tag):
     return tag in ['NN', 'NNS', 'NNP', 'NNPS']
@@ -31,6 +35,15 @@ def penn_to_wn(tag):
         return wn.VERB
     return None
 
+def _set_lex_graph_edge_weights(graph):
+    for su1 in graph.nodes():
+        for su2 in graph.nodes():
+
+            edge = (su1, su2)
+            if su1 != su2 and not graph.has_edge(edge):
+                similarity = _get_lex_similarity(su1, su2)
+                if similarity != 0:
+                    graph.add_edge(edge, similarity)
 
 def _set_graph_edge_weights(graph):
     for su1 in graph.nodes():
@@ -41,6 +54,48 @@ def _set_graph_edge_weights(graph):
                 similarity = _get_similarity(su1, su2)
                 if similarity != 0:
                     graph.add_edge(edge, similarity)
+
+def _get_lex_similarity(su1, su2):
+
+    # tfidf = TfidfVectorizer(tokenizer=tokenize, stop_words='english')
+    # v1 = tfidf.fit_transform(su1.text)
+    # v2 = tfidf.fit_transform(su2.text)
+    d1 = {}
+    for w in tokenize(su1.text):
+        if w not in d1:
+            d1[w] = 0.0
+        d1[w] += 1.0
+    d2 = {}
+    for w in tokenize(su2.text):
+        if w not in d2:
+            d2[w] = 0.0
+        d2[w] += 1.0
+    v1 = []
+    v2 = []
+    for w in d1.keys():
+        if w in d2.keys():
+            v1.append(d1[w])
+            v2.append(d2[w])
+
+    if v1 and v2:
+        return 1.0 - cosine_distance(v1, v2)
+    else:
+        return 0.0
+
+
+def cosine_distance(u, v):
+    """
+    Returns the cosine of the angle between vectors v and u. This is equal to
+    u.v / |u||v|.
+    """
+    return np.dot(u, v) / (math.sqrt(np.dot(u, u)) * math.sqrt(np.dot(v, v)))
+
+def tokenize(text):
+    tokens = word_tokenize(text)
+    stems = []
+    for item in tokens:
+        stems.append(PorterStemmer().stem(item))
+    return stems
 
 def _get_similarity(su1, su2):
 

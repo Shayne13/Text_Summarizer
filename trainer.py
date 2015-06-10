@@ -21,7 +21,6 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import cross_val_score
 from sklearn import metrics
 
-
 from syntactic_unit import SentenceUnit, WordUnit
 from Textrank import textrank
 
@@ -46,7 +45,7 @@ def extract_document_wide_features(document):
     documentFeatures = []
 
     documentFeatures.append(textrank.textrank_keyphrase(document))
-    documentFeatures.append(lexrank_keyphrase(document))
+    documentFeatures.append(textrank.lexrank_keyphrase(document))
     documentFeatures.append(textrank.textrank_keyword(document))
 
     return documentFeatures
@@ -57,11 +56,11 @@ def counter_sum(counterTuple):
         counterSum += ele
     return counterSum
 
-def lexrank_keyphrase(text):
-    results = []
-    for i in range(len(text)):
-        results.append(Counter({ 'LEXRANK_SCORE': 0.0 }))
-    return results
+# def lexrank_keyphrase(text):
+#     results = []
+#     for i in range(len(text)):
+#         results.append(Counter({ 'LEXRANK_SCORE': 0.0 }))
+#     return results
 
 def train_and_print_results(features, labels, modelFunction):
     model, featMatrix, vectorizer = modelFunction(features, labels)
@@ -77,7 +76,7 @@ def train_classifier_log_reg(features, labels):
     print ""
     #print '<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>'
     t0 = time.clock()
-    
+
     vectorizer = DictVectorizer(sparse=False)
     feature_matrix = vectorizer.fit_transform(features) # Features = List of counters
 
@@ -93,7 +92,7 @@ def train_classifier_gaussian_NB(features, labels):
     print " "
     #print '<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>'
     t0 = time.clock()
-    
+
     vectorizer = DictVectorizer(sparse=False)
     feature_matrix = vectorizer.fit_transform(features) # Features = List of counters
 
@@ -109,7 +108,7 @@ def train_classifier_SVM(features, labels):
     print " "
     #print '<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>'
     t0 = time.clock()
-    
+
     vectorizer = DictVectorizer(sparse=False)
     feature_matrix = vectorizer.fit_transform(features) # Features = List of counters
 
@@ -117,7 +116,7 @@ def train_classifier_SVM(features, labels):
     mod.fit(feature_matrix, labels)
 
     print "  -- Done. Took {0} seconds process time to train {1} data points".format(time.clock() - t0, len(features))
-    return mod, feature_matrix, vectorizer    
+    return mod, feature_matrix, vectorizer
 
 def evaluate_trained_classifier(model, feature_matrix, labels):
     """Evaluate model, the output of train_classifier, on the test data."""

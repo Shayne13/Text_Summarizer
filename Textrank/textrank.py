@@ -25,7 +25,7 @@ def lexrank_keyphrase(text):
 
     # Creates the graph and calculates the similarity coefficient for every pair of nodes.
     graph = commons.build_graph([ syntacticUnit for syntacticUnit in text])
-    summarizer._set_graph_edge_weights(graph)
+    summarizer._set_lex_graph_edge_weights(graph)
     # Remove all nodes with all edges weights equal to zero.
     commons.remove_unreachable_nodes(graph)
 
@@ -35,7 +35,7 @@ def lexrank_keyphrase(text):
     results = []
     for su in text:
         score = (1-pagerank_scores[su.label, su.index]) if (su.label, su.index) in pagerank_scores.keys() else 0.0
-        results.append(Counter({ 'TEXTRANK_SCORE': score }))
+        results.append(Counter({ 'LEXRANK_SCORE': score }))
     return results
 
 def textrank_keyword(text):

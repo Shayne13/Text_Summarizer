@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 #
 # Developed by: Shayne Longpre and Ajay Sohmshetty
-# Copyright and all rights reserved. 
-# 
+# Copyright and all rights reserved.
+#
 
 import sys, os, nltk, codecs, itertools
 import time
@@ -11,7 +11,7 @@ from nltk import word_tokenize
 from nltk.corpus import stopwords
 from collections import Counter
 from syntactic_unit import SentenceUnit, WordUnit
-from ngram import NGram # To get this: "pip install ngram"
+# from ngram import NGram # To get this: "pip install ngram"
 from Textrank import summarizer
 
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
@@ -72,7 +72,7 @@ def parse_xml_folder(inputFolder, summaryFolder, bodyFolder, writeOption=None):
     articles = [ pq(filename = "./{0}/{1}".format(inputFolder, f)) for i, f in enumerate(XMLFiles) ]
     summaries = [ parse_xml_document(d, 'summary') for d in articles ]
     bodies = [ parse_xml_document(d, 'body') for d in articles ]
-    
+
     print "  -- Done. Took {0} seconds process time for parsing {1} xml file(s). Writing now ...".format(time.clock() - t0, len(articles))
     # Need to remove any body sentences that are too similar to summary sentences (does not improve results though)
     #identifySummaryLikeSentences(summaries[0], bodies[0])
@@ -107,14 +107,14 @@ def listdir_nohidden(path):
 
 ##### <NOT USED>
 def calculateSimilarity(sentence1, sentence2):
-    return NGram.compare(sentence1, sentence2, N=2)    
+    return NGram.compare(sentence1, sentence2, N=2)
 def identifySummaryLikeSentences(summarySentences, bodySentences):
     print "Checking similar summary like body sentences..."
     for bodySentence in bodySentences:
         for summarySentence in summarySentences:
             if calculateSimilarity(bodySentence, summarySentence) > 0.1:
                 print "Hey!"
-##### </NOT USED>                
+##### </NOT USED>
 
 
 def get_section_headers(document):
@@ -132,7 +132,7 @@ def get_best_section_header(allSectionHeaders, sentence):
         headerWords = word_tokenize(header)
         similarity = summarizer.noun_overlap(headerWords, sentenceWords)
         if similarity > bestSimilarity:
-            bestSimilarity = similarity 
+            bestSimilarity = similarity
             bestSectionHeader = header
 
     return bestSectionHeader
@@ -174,7 +174,7 @@ def parse_xml_document(document, entity):
             return sentenceUnits
         elif entity == "summary":
             sentenceUnits = []
-            for i, sentence in enumerate(sentences):                
+            for i, sentence in enumerate(sentences):
                 bestSectionHeader = get_best_section_header(allSectionHeaders, sentence)
                 sentenceUnits.append(SentenceUnit(sentence, entity.encode('utf-8'), i, sectionName = bestSectionHeader))
 
@@ -215,7 +215,7 @@ def write_folder(XMLFileNames, outputName, text):
 # ------------------------------------------------------------------------------
 def process_data(data):
     print 'STAGE [2] -- PROCESSING DATA -- (tokenizing/tagging/stopwords/extracting) ...'
-    t0 = time.clock()    
+    t0 = time.clock()
 
     surfaceFeatures = []
     for document in data:
@@ -294,8 +294,8 @@ def extract_surface_features(sentence, tagged):
 # Updates the counter to add this feature.
 # ------------------------------------------------------------------------------
 def sentence_length(c, s):
-    avg = 26 # mean and standard dev calculated earlier 
-    std = 12
+    avg = 33 # mean and standard dev calculated earlier
+    std = 13
     l = len(word_tokenize(s))
     # l = len(s.split(' '))
     if l <= avg - 3*std/2:
@@ -305,7 +305,7 @@ def sentence_length(c, s):
     elif l <= avg + std/2:
         c.update({ "SENTENCE_LENGTH_3" : 1.0 })
     elif l <= avg + 3*std/2:
-        c.update({ "SENTENCE_LENGTH_4" : 1.0 })        
+        c.update({ "SENTENCE_LENGTH_4" : 1.0 })
     else:
         c.update({ "SENTENCE_LENGTH_5" : 1.0 })
 
