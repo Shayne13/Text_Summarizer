@@ -16,6 +16,7 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_selection import SelectFpr, chi2
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
+from sklearn import svm
 from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import cross_val_score
 from sklearn import metrics
@@ -62,8 +63,18 @@ def lexrank_keyphrase(text):
         results.append(Counter({ 'LEXRANK_SCORE': 0.0 }))
     return results
 
+def train_and_print_results(features, labels, modelFunction):
+    model, featMatrix, vectorizer = modelFunction(features, labels)
+    scores = cross_val_score(model, featMatrix, labels, scoring="f1_macro") # accuracy, f1, log_loss
+    #print model.coef_
+    predictions = model.predict(featMatrix)
+    print ""
+    print metrics.classification_report(labels, predictions)
+    return model 
+
 def train_classifier_log_reg(features, labels):
     print "STAGE [4] -- TRAINING MODEL -- Logistic Regression ..."
+    print ""
     #print '<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>'
     t0 = time.clock()
     
@@ -79,6 +90,7 @@ def train_classifier_log_reg(features, labels):
 
 def train_classifier_gaussian_NB(features, labels):
     print "STAGE [4] -- TRAINING MODEL -- Gaussian Naive Bayes ..."
+    print " "
     #print '<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>'
     t0 = time.clock()
     
@@ -92,20 +104,20 @@ def train_classifier_gaussian_NB(features, labels):
     print "  -- Done. Took {0} seconds process time to train {1} data points".format(time.clock() - t0, len(features))
     return mod, feature_matrix, vectorizer
 
-def train_classifier_gaussian_NB(features, labels):
-    print "STAGE [4] -- TRAINING MODEL -- Gaussian Naive Bayes ..."
+def train_classifier_SVM(features, labels):
+    print "STAGE [4] -- TRAINING MODEL -- Support Vector Machine (SVM) ..."
+    print " "
     #print '<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>'
     t0 = time.clock()
     
     vectorizer = DictVectorizer(sparse=False)
     feature_matrix = vectorizer.fit_transform(features) # Features = List of counters
 
-    mod = GaussianNB()
-
+    mod = svm.SVC()
     mod.fit(feature_matrix, labels)
 
     print "  -- Done. Took {0} seconds process time to train {1} data points".format(time.clock() - t0, len(features))
-    return mod, feature_matrix, vectorizer
+    return mod, feature_matrix, vectorizer    
 
 def evaluate_trained_classifier(model, feature_matrix, labels):
     """Evaluate model, the output of train_classifier, on the test data."""
