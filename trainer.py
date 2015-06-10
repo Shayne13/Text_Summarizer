@@ -1,5 +1,6 @@
 import itertools
 import random
+import time
 import pickle
 import numpy as np
 from operator import itemgetter
@@ -27,11 +28,15 @@ from Textrank import textrank
 
 def featurize(documents, surfaceFeatures):
     print "STAGE [3] -- FEATURIZING -- (TextRank, LexRank, LDA) ..."
+    t0 = time.clock()
+
     features = []
     for docIndex, doc in enumerate(documents):
         documentFeatures = extract_document_wide_features(doc)
         documentFeatures.append(surfaceFeatures[docIndex])
         features += [ counter_sum(fl) for fl in izip(*documentFeatures) ]
+
+    print "  -- Done. Took {0} seconds process time to featurize {1} vector(s)".format(time.clock() - t0, len(features))
     return features
 
 def extract_document_wide_features(document):
@@ -57,18 +62,24 @@ def lexrank_keyphrase(text):
 
 def train_classifier(features, labels):
     print "STAGE [4] -- TRAINING MODEL -- Logistic Regression ..."
-    print '<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>'
+    #print '<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>'
+    t0 = time.clock()
+    
     vectorizer = DictVectorizer(sparse=False)
     feature_matrix = vectorizer.fit_transform(features) # Features = List of counters
     mod = LogisticRegression(fit_intercept=True, intercept_scaling=1, class_weight='auto')
     mod.fit_transform(feature_matrix, labels)
+
+    print "  -- Done. Took {0} seconds process time to train {1} data points".format(time.clock() - t0, len(features))
     return mod, feature_matrix, vectorizer
 
 def evaluate_trained_classifier(model, feature_matrix, labels):
     """Evaluate model, the output of train_classifier, on the test data."""
     print "STAGE [5] -- TESTING -- Logistic Regression ..."
-    print '<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>'
+    #print '<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>'
+    t0 = time.clock()
     predictions = model.predict(feature_matrix)
+    print "  -- Done. Took {0} seconds process time to test {1} data points".format(time.clock() - t0, len(labels))
     print cross_val_score(model, feature_matrix, labels, scoring="f1_macro")
     return metrics.classification_report(labels, predictions)
 

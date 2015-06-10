@@ -5,12 +5,14 @@
 # 
 
 import sys, os, nltk, codecs, itertools
+import time
 from pyquery import PyQuery as pq
 from nltk import word_tokenize
 from nltk.corpus import stopwords
 from collections import Counter
 from syntactic_unit import SentenceUnit, WordUnit
 from ngram import NGram # To get this: "pip install ngram"
+from Textrank import summarizer
 
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # XML PARSER FUNCTIONS:
@@ -63,15 +65,19 @@ def parse_and_process_xml(inputFolder, summaryFolder, bodyFolder, writeOption=No
 def parse_xml_folder(inputFolder, summaryFolder, bodyFolder, writeOption=None):
     print '<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>'
     print 'STAGE [1] -- PARSING XML -- from {0} ...'.format(inputFolder)
+
+    t0 = time.clock()
+
     XMLFiles = listdir_nohidden(inputFolder) #os.listdir(inputFolder)
     articles = [ pq(filename = "./{0}/{1}".format(inputFolder, f)) for i, f in enumerate(XMLFiles) ]
     summaries = [ parse_xml_document(d, 'summary') for d in articles ]
     bodies = [ parse_xml_document(d, 'body') for d in articles ]
-
-    #print summaries[0]
-
-    # Need to remove any body sentences that are too similar to summary sentences 
+    
+    print "  -- Done. Took {0} seconds process time for parsing {1} xml file(s). Writing now ...".format(time.clock() - t0, len(articles))
+    # Need to remove any body sentences that are too similar to summary sentences (does not improve results though)
     #identifySummaryLikeSentences(summaries[0], bodies[0])
+
+    t0 = time.clock()
 
     if writeOption:
         if writeOption == 'summary':
@@ -89,23 +95,47 @@ def parse_xml_folder(inputFolder, summaryFolder, bodyFolder, writeOption=None):
     documents = [ summaries[i] + bodies[i] for i in range(len(articles)) ]
     labels = list(itertools.chain(*[([LABELS[0]]*len(summaries[i])) + ([LABELS[1]]*len(bodies[i])) for i in range(len(articles))]))
 
+    print "  -- Done. Took {0} seconds to write <={1} summary/body file(s)".format(time.clock() - t0, len(summaries+bodies))
+
     return documents, labels
 
-def calculateSimilarity(sentence1, sentence2):
-    return NGram.compare(sentence1, sentence2, N=2)
-    
+def listdir_nohidden(path):
+    for f in os.listdir(path):
+        if not f.startswith('.'):
+            yield f
 
+
+##### <NOT USED>
+def calculateSimilarity(sentence1, sentence2):
+    return NGram.compare(sentence1, sentence2, N=2)    
 def identifySummaryLikeSentences(summarySentences, bodySentences):
     print "Checking similar summary like body sentences..."
     for bodySentence in bodySentences:
         for summarySentence in summarySentences:
             if calculateSimilarity(bodySentence, summarySentence) > 0.1:
                 print "Hey!"
+##### </NOT USED>                
 
-def listdir_nohidden(path):
-    for f in os.listdir(path):
-        if not f.startswith('.'):
-            yield f
+
+def get_section_headers(document):
+    section_headers = [header.text() for header in pq(document("header")).items()]
+    section_headers.append(document("title").text())
+
+    return section_headers
+
+def get_best_section_header(allSectionHeaders, sentence):
+    bestSimilarity = -1
+    bestSectionHeader = allSectionHeaders[0] # must have at least 1 (the title)
+    sentenceWords = word_tokenize(sentence)
+
+    for header in allSectionHeaders:
+        headerWords = word_tokenize(header)
+        similarity = summarizer.noun_overlap(headerWords, sentenceWords)
+        if similarity > bestSimilarity:
+            bestSimilarity = similarity 
+            bestSectionHeader = header
+
+    return bestSectionHeader
 
 
 # parse_xml_document( <pyquery document>, string)
@@ -116,12 +146,39 @@ def listdir_nohidden(path):
 # Returns a list of sentences from either the summary or body for
 # that document.
 # ------------------------------------------------------------------------------
-def parse_xml_document(d, entity):
-    elem = d(entity)
+def parse_xml_document(document, entity):
+    elem = document(entity)
+    allSectionHeaders = get_section_headers(document)
+
     if elem:
         text = u' '.join([ p.text().strip() for p in elem('p').items() ])
         sentences = sentenceDetector.tokenize(text)
-        return [ SentenceUnit(sentence, entity.encode('utf-8'), i) for i, sentence in enumerate(sentences) ]
+
+        if entity == "body":
+            # Also need to extract section
+            sentenceUnits = []
+
+            for pElem in elem('p').items():
+                parentSection = pElem.parents("section")[-1]
+                #print pElem.text()
+
+                pyHeaders = [pq(pyHeader).text() for pyHeader in pq(parentSection)("header")]
+                paragraphHeader = pyHeaders[0]
+
+                #print paragraphHeader
+
+                curParagraphSentences = sentenceDetector.tokenize(pElem.text().strip())
+                toAdd = [ SentenceUnit(sentence, entity.encode('utf-8'), i, sectionName = paragraphHeader) for i, sentence in enumerate(curParagraphSentences) ]
+                sentenceUnits += toAdd
+
+            return sentenceUnits
+        elif entity == "summary":
+            sentenceUnits = []
+            for i, sentence in enumerate(sentences):                
+                bestSectionHeader = get_best_section_header(allSectionHeaders, sentence)
+                sentenceUnits.append(SentenceUnit(sentence, entity.encode('utf-8'), i, sectionName = bestSectionHeader))
+
+            return sentenceUnits
     else:
         print 'Error: Invalid arguments to parse_xml_document.'
         return
@@ -158,9 +215,13 @@ def write_folder(XMLFileNames, outputName, text):
 # ------------------------------------------------------------------------------
 def process_data(data):
     print 'STAGE [2] -- PROCESSING DATA -- (tokenizing/tagging/stopwords/extracting) ...'
+    t0 = time.clock()    
+
     surfaceFeatures = []
     for document in data:
         surfaceFeatures.append([ process_sentence(su) for su in document ])
+
+    print "  -- Done. Took {0} seconds process time for processing {1} document(s)".format(time.clock() - t0, len(data))
     return surfaceFeatures
 
 
@@ -182,11 +243,19 @@ def process_sentence(sentenceUnit):
 
     surfaceFeatures = extract_surface_features(sentence, cleaned)
 
+    #add_headline_feature(surfaceFeatures, tagged, nltk.pos_tag(sentenceUnit.sectionName))
+    surfaceFeatures.update({ "HEADLINE_SIMILARITY" : summarizer.noun_overlap(words, word_tokenize(sentenceUnit.sectionName)) })
+
     return surfaceFeatures
 
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # EXTRACT SURFACE FEATURES:
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+
+#def add_headline_feature(surfaceFeatures, taggedSentence, taggedHeadline):
+    #similarityToHeader = summarizer.entail_overlap(taggedSentence, taggedHeadline)
+
+    #surfaceFeatures.update({ "HEADLINE_SIMILARITY" : similarityToHeader })
 
 def extract_surface_features(sentence, tagged):
     surfaceFeatures = Counter()
@@ -200,8 +269,6 @@ def extract_surface_features(sentence, tagged):
     contains_punctuation(surfaceFeatures, sentence, ".")
     contains_punctuation(surfaceFeatures, sentence, ".")
     contains_punctuation(surfaceFeatures, sentence, ";")
-
-
 
     contains_word_type(surfaceFeatures, tagged, ['NN', 'NNS'])
     contains_word_type(surfaceFeatures, tagged, ['JJ', 'JJR', 'JJS'])
