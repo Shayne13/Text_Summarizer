@@ -112,7 +112,7 @@ def train_classifier_SVM(features, labels):
     vectorizer = DictVectorizer(sparse=False)
     feature_matrix = vectorizer.fit_transform(features) # Features = List of counters
 
-    mod = svm.SVC()
+    mod = svm.SVC(probability=True)
     mod.fit(feature_matrix, labels)
 
     print "  -- Done. Took {0} seconds process time to train {1} data points".format(time.clock() - t0, len(features))
